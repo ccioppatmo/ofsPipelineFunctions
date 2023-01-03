@@ -1,16 +1,10 @@
 {
     "azureFunctions.deploySubpath": ".",
     "azureFunctions.scmDoBuildDuringDeployment": true,
-    "azureFunctions.AzureWebJobsFeatureFlags ": "EnableWorkerIndexing",
-    "azureFunctions.enableOryxBuild": true,
     "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~4",
     "debug.internalConsoleOptions": "neverOpen",
     "azureFunctions.projectLanguageModel": 2,
-    "azureFunctions.templateFilter": "Core",
-    "python.linting.flake8Enabled": true,
-    "python.linting.enabled": false,
-    "python.linting.mypyCategorySeverity.error": "Information",
-    "python.linting.pylintCategorySeverity.error": "Information"
+    "azureFunctions.templateFilter": "Core"
 }
