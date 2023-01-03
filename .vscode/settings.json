@@ -8,7 +8,7 @@
     "azureFunctions.projectRuntime": "~4",
     "debug.internalConsoleOptions": "neverOpen",
     "azureFunctions.projectLanguageModel": 2,
-    "azureFunctions.templateFilter": "All",
+    "azureFunctions.templateFilter": "Core",
     "python.linting.flake8Enabled": true,
     "python.linting.enabled": true
 }
