@@ -10,5 +10,7 @@
     "azureFunctions.projectLanguageModel": 2,
     "azureFunctions.templateFilter": "Core",
     "python.linting.flake8Enabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": false,
+    "python.linting.mypyCategorySeverity.error": "Information",
+    "python.linting.pylintCategorySeverity.error": "Information"
 }
