@@ -4,7 +4,9 @@
     {
       "name": "name",
       "type": "activityTrigger",
-      "direction": "in"
+      "direction": "in",
+      "datatype": "string"
     }
-  ]
+  ],
+  "disabled": false
 }
