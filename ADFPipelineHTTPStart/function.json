@@ -20,7 +20,8 @@
     {
       "name": "starter",
       "type": "durableClient",
-      "direction": "in"
+      "direction": "in",
+      "datatype": "string"
     }
   ]
 }

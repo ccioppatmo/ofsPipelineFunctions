@@ -13,7 +13,7 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
     function_name = req.route_params['functionName']
     event_data = req.get_body()
 
-    instance_id = await client.start_new(function_name, event_data, None)
+    instance_id = await client.start_new(function_name, None, event_data)
 
     logging_info = f"ADFFunctionOrchestrator started with Instance ID : {instance_id} - Event Payload: {event_data}"
     logging.info(logging_info)
