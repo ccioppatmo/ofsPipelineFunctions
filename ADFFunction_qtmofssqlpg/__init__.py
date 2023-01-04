@@ -11,6 +11,7 @@ from urllib.parse import quote_plus
 from decouple import config
 import datetime
 import sys
+import json
 """
 PostgreSQL Function calls post ADF completion:
 Bi-Weekly Pipeline 
@@ -55,7 +56,7 @@ run_function_once('dev.process_agg_sector', 1, engine)
 """
 seq = log_df = engine = None
 
-def main(name: dict) -> str:
+def main(name: str) -> str:
     global seq, log_df, engine 
     results = []
     connection = name['resource']
