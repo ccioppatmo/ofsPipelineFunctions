@@ -8,7 +8,8 @@ import azure.functions as func
 import azure.durable_functions as df
 
 
-def orchestrator_function(context: df.DurableOrchestrationContext, event_data, instance_id = 1):
+def orchestrator_function(context: df.DurableOrchestrationContext, event):
+    event_data=json.loads(event_data)
     task_handler = event_data['task_handler']['handler_name']
     tasks = event_data['task_handler']['tasks']
     for t in tasks:
