@@ -6,6 +6,6 @@
     "azureFunctions.projectRuntime": "~4",
     "debug.internalConsoleOptions": "neverOpen",
     "azureFunctions.projectLanguageModel": 2,
-    "azureFunctions.templateFilter": "All",
+    "azureFunctions.templateFilter": "Core",
     "azureFunctions.enableRemoteDebugging": true
 }
