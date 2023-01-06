@@ -5,11 +5,9 @@ class SerializableClass(object):
     """ Example serializable class.
 
     For a custom class to be serializable in
-    Python Durable Functions, we require that
-    it include both `to_json` and `from_json`
-    a `@staticmethod`s for serializing to JSON
-    and back respectively. These get called
-    internally by the framework.
+    Python Durable Functions, it needs to include both `to_json` and `from_json`,
+    and `@staticmethod`s for serializing to JSON and back respectively. 
+    These get called internally by the framework.
     """
     def __init__(self, payload: str):
         """ Construct the class

@@ -1,5 +1,8 @@
-# This function is not intended to be invoked directly. Instead it will be
-# triggered by an HTTP starter function.
+"""
+    This "sub-orchestrator" function is not intended to be invoked directly. 
+    Instead it will be invoked by the main orchestrator to manage the asynchronous 'fanning out' 
+    of tasks to be completed by activity handlers.
+"""
 
 import logging
 import json
