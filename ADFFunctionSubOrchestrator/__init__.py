@@ -11,18 +11,17 @@ from ..shared_code.MyClasses import SerializableClass
 results = {}
 def orchestrator_function(context: df.DurableOrchestrationContext):
     event_obj: SerializableClass = context.get_input()
+    print(str(event_obj))
     if (event_obj):
-        print(f'event_obj type: {type(event_obj)}')
-        print(f'event_obj: {event_obj}')
-        event_payload = event_obj.get_payload()
-        print(f'event_payload type: {type(event_payload)}')
-        print(f'event_payload: {event_payload}')
-        event_json = json.loads(context._input)
-        print(f'event_json type: {type(event_json)}')
-        print(f'event_json: {event_json}')
-        task_handler = event_json['task_handler']['handler_name']
+        event = event_obj.get_payload()
+        print(f'event type: {type(event)}')
+        print(f'event: {event}')
+        event_data = json.loads(event)
+        print(f'event_data type: {type(event_data)}')
+        print(f'event_data: {event_data}')
+        task_handler = event_data['task_handler']['handler_name']
         print(f'task_handler: {task_handler}')
-        tasks = event_json['task_handler']['tasks']
+        tasks = event_data['task_handler']['tasks']
         print(f'tasks: {tasks}')
         for t in tasks:
             tasks = []
