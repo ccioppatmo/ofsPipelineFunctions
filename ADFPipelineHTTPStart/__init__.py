@@ -12,8 +12,8 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
     client = df.DurableOrchestrationClient(starter)
     function_name = req.route_params['functionName']
     #orchestrator_payload = req.get_body()
-    logging.log = (f'ADFFunctionOrchestrator started with Instance ID : {instance_id} - Event Payload: {req}')
-
+    logging.log = (f'About to start ADFFunctionOrchestrator - Event Payload: {req}')
     instance_id = await client.start_new(function_name, None, req)
+    logging.log = (f'ADFFunctionOrchestrator started with Instance ID : {instance_id}')
 
     return client.create_check_status_response(req, instance_id)
