@@ -7,12 +7,13 @@ import logging
 
 import azure.functions as func
 import azure.durable_functions as df
+import json
 
 async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
     client = df.DurableOrchestrationClient(starter)
     function_name = req.route_params['functionName']
     #orchestrator_payload = req.get_body()
-    logging.log = (f'About to start ADFFunctionOrchestrator - Event Payload: {req}')
+    logging.log = (f'About to start ADFFunctionOrchestrator - Event Payload: {json.dumps(req)}')
     instance_id = await client.start_new(function_name, None, None)
     logging.log = (f'ADFFunctionOrchestrator started with Instance ID : {instance_id}')
 
