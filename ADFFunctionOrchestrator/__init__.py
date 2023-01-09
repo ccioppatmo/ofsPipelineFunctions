@@ -31,7 +31,6 @@ total_orchestrator_list_items_processed = 0
 total_sub_orchestrator_list_items_found = 0
 total_sub_orchestrator_list_items_processed = 0
 total_activity_task_list_items_found = 0
-total_activity_task_list_items_processed = 0
 total_activity_functions_invoked = 0
 def orchestrator_function(context: df.DurableOrchestrationContext):
     orchestrator_input: SerializableClass = context.get_input()
@@ -71,47 +70,35 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
                         if (isinstance(sub_orchestrator_list, list)):
                             sub_orchestrator_list_items_found += len(sub_orchestrator_list)
                             total_sub_orchestrator_list_items_found += len(sub_orchestrator_list)
-                            for sub_orchestrator_obj in sub_orchestrator_list:
+                            activity_task_list_to_process = []
+                            activity_payload = {}
+                            for activity_task_list_obj in sub_orchestrator_list:
                                 sub_orchestrator_list_items_processed += 1
                                 total_sub_orchestrator_list_items_processed += 1
-                                activity_pipeline_name = sub_orchestrator_obj.get('activity_pipeline_name',None)
-                                activity_pipeline_workload_purpose = sub_orchestrator_obj.get('activity_pipeline_workload_purpose',None)
-                                activity_task_list = sub_orchestrator_obj.get('activity_task_list',None)
+                                activity_payload["activity_pipeline_name"] = activity_task_list_obj.get('activity_pipeline_name',None)
+                                activity_payload["activity_pipeline_workload_purpose"] = activity_task_list_obj.get('activity_pipeline_workload_purpose',None)
+                                activity_payload["activity_task_list"] = activity_task_list_obj.get('activity_task_list',None)
                                 activity_task_list_items_found = 0
-                                activity_task_list_items_processed = 0
                                 activity_functions_invoked = 0
                                 if (isinstance(activity_task_list, list)):
                                     activity_task_list_items_found += len(activity_task_list)
                                     total_activity_task_list_items_found += len(activity_task_list)
-                                    for activity_task_list_obj in activity_task_list:
-                                        activity_task_list_items_processed += 1
-                                        total_activity_task_list_items_processed += 1
-                                        task_function_name = activity_task_list_obj.get('task_function_name',None)
-                                        logging.log(f'Adding task {activity_task_list_items_processed} of {activity_task_list_items_found} to activity processing list: function_name: {task_function_name} task: {activity_task_list_obj}')
-                                        activity_task_list.append(context.call_sub_orchestrator(task_function_name, activity_pipeline_name, activity_pipeline_workload_purpose, activity_task_list))
-                                    if (len(activity_task_list) > 0):
-                                        logging.log(f'Processing {len(activity_task_list)} tasks asynchronously...')
-                                        results = yield context.task_all(activity_task_list)
-                                        results_list.append(results)
-                                        activity_functions_invoked += 1
-                                        total_activity_functions_invoked += 1
-                                    else:
-                                        results = f'No tasks found for activity_task_list: {activity_task_list}'
-                                        yield results 
+                                    logging.log(f'Adding task {activity_payload} - {len(activity_task_list)} tasks to activity_task_list_to_process list')
+                                    activity_task_list_to_process.append(context.call_sub_orchestrator("ADFFunctionSubOrchestrator", activity_payload))
                                 else:
-                                    results = f'No activity_task_list provided for activity_task_list_obj: {activity_task_list_obj}'
-                                    yield results 
-                            if (sub_orchestrator_list_items_found == 0):
-                                results = f'No sub_orchestrator_obj found in sub_orchestrator_list: {sub_orchestrator_list}'
-                                yield results    
-                            elif (sub_orchestrator_list_items_processed == 0):
-                                results = f'No sub_orchestrator_obj processed in sub_orchestrator_list: {sub_orchestrator_list}'
-                                yield results 
+                                    results = f'No activity_task_list found for activity_task_list_obj: {activity_task_list_obj}'
+                                    yield results     
+                            if (len(activity_task_list_to_process) > 0):
+                                logging.log(f'Processing {len(activity_task_list_to_process)} tasks asynchronously...')
+                                results = yield context.task_all(activity_task_list_to_process)
+                                results_list.append(results)
+                                activity_functions_invoked += 1
+                                total_activity_functions_invoked += 1
                             else:
-                                logging.log(f'activity_functions_invoked: {activity_functions_invoked} for activity_pipeline_name: {activity_pipeline_name} with purpose: {activity_pipeline_workload_purpose} Results: {results_list}')     
-                                yield results  
+                                results = f'No tasks found for activity_task_list: {activity_task_list}'
+                                yield results 
                         else:
-                            results = f'No sub_activities provided for sub_orchestrator_list: {sub_orchestrator_list}'
+                            results = f'No activity_task_list provided for activity_task_list_obj: {activity_task_list_obj}'
                             yield results 
                     if (orchestrator_list_items_processed == 0):
                         results = f'No sub_orchestrator_obj found orchestrator_list: {orchestrator_list}'
@@ -139,7 +126,6 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     logging.log(f'Total total_sub_orchestrator_list_items_found: {total_sub_orchestrator_list_items_found}')
     logging.log(f'Total total_sub_orchestrator_list_items_processed: {total_sub_orchestrator_list_items_processed}')
     logging.log(f'Total total_activity_task_list_items_found: {total_activity_task_list_items_found}')
-    logging.log(f'Total total_activity_task_list_items_processed: {total_activity_task_list_items_processed}')
     logging.log(f'Total activity_functions_invoked: {total_activity_functions_invoked} Results: {results_list}')  
     yield results   
 

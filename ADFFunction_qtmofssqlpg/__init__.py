@@ -56,7 +56,7 @@ run_function_once('dev.process_agg_sector', 1, engine)
 """
 seq = log_df = engine = None
 
-def main(name: str, activity_task_list: str) -> str:
+def main(activity_task_list: str) -> str:
     global seq, log_df, engine 
     results = []
     username = os.getenv('DBUSER_PostgreSQL')
