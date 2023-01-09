@@ -2,7 +2,7 @@
   "scriptFile": "__init__.py",
   "bindings": [
     {
-      "name": "activity_task_list",
+      "name": "name",
       "type": "activityTrigger",
       "direction": "in",
       "datatype": "string"

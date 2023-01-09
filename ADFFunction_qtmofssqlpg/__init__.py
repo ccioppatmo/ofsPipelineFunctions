@@ -56,7 +56,7 @@ run_function_once('dev.process_agg_sector', 1, engine)
 """
 seq = log_df = engine = None
 
-def main(activity_task_list: str) -> str:
+def main(name: str) -> str:
     global seq, log_df, engine 
     results = []
     username = os.getenv('DBUSER_PostgreSQL')
@@ -66,7 +66,7 @@ def main(activity_task_list: str) -> str:
     database = os.getenv('DBNAME_PostgreSQL')
     engine = ("postgresql://" + username + ":{0}@" + host + ":" + port + "/" + database).format(quote_plus(password))
     
-    task_list = json.loads(activity_task_list)
+    task_list = json.loads(name)
     if (isinstance(task_list, list)):
         for task in task_list:
             seq = 0
@@ -79,7 +79,7 @@ def main(activity_task_list: str) -> str:
                 run_function_iterations(task['task_function_name'], int(task['parameters']['iterations']), engine)
             results.append(log_df.to_json())
     else:
-        logging.log(f'activity_task_list parameter must be a list: {activity_task_list}')
+        logging.log(f'activity_task_list parameter must be a list: {name}')
     return results
 
 def log_time(this_seq, this_func):
