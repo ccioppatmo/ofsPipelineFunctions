@@ -10,56 +10,137 @@ import azure.functions as func
 import azure.durable_functions as df
 from ..shared_code.MyClasses import SerializableClass
 
+activity_pipeline_name = ""
+activity_pipeline_workload_purpose = ""
 results = {}
 results_list = []
-sub_orchestrator_activities_submitted = 0
+activity_task_list = []
+payload_list_items_found = 0
+payload_list_items_processed = 0
+orchestrator_list_items_found = 0
+orchestrator_list_items_processed = 0
+sub_orchestrator_list_items_found = 0
+sub_orchestrator_list_items_processed = 0
+activity_task_list_items_found = 0
+activity_task_list_items_processed = 0
+activity_functions_invoked = 0
+total_payload_list_items_found = 0
+total_payload_list_items_processed = 0
+total_orchestrator_list_items_found = 0
+total_orchestrator_list_items_processed = 0
+total_sub_orchestrator_list_items_found = 0
+total_sub_orchestrator_list_items_processed = 0
+total_activity_task_list_items_found = 0
+total_activity_task_list_items_processed = 0
+total_activity_functions_invoked = 0
 def orchestrator_function(context: df.DurableOrchestrationContext):
     orchestrator_input: SerializableClass = context.get_input()
     if (orchestrator_input):
-        print(f'orchestrator_input type: {type(orchestrator_input)}')
-        print(f'orchestrator_input: {orchestrator_input}')
-        orchestrator_payload = orchestrator_payload.get_payload()
-        print(f'orchestrator_payload type: {type(orchestrator_payload)}')
-        print(f'orchestrator_payload: {orchestrator_payload}')
-        orchestrator_json = json.loads(context._input)
-        print(f'orchestrator_json type: {type(orchestrator_json)}')
-        print(f'orchestrator_json: {orchestrator_json}')
-        if (orchestrator_json):
+        logging.log(f'orchestrator_input type: {type(orchestrator_input)}')
+        logging.log(f'orchestrator_input: {orchestrator_input}')
+        orchestrator_payload = orchestrator_input.get_payload()
+        logging.log(f'orchestrator_payload type: {type(orchestrator_payload)}')
+        logging.log(f'orchestrator_payload: {orchestrator_payload}')
+        orchestrator_json = json.loads(orchestrator_payload)
+        logging.log(f'orchestrator_json type: {type(orchestrator_json)}')
+        logging.log(f'orchestrator_json: {orchestrator_json}')
+        payload_list_items_found = 0
+        payload_list_items_processed = 0
+        if (isinstance(orchestrator_json, list)):
+            payload_list_items_found += len(orchestrator_json)
+            total_payload_list_items_found += len(orchestrator_json)
             for orchestrator_obj in orchestrator_json:
-                orchestrator_list = orchestrator_obj['orchestrator']
-                print(f'orchestrator_list type: {type(orchestrator_list)}')
-                print(f'orchestrator_list: {orchestrator_list}')
-                if (orchestrator_list):
+                payload_list_items_processed += 1
+                total_payload_list_items_processed += 1
+                orchestrator_list = orchestrator_obj.get('orchestrator',None)
+                logging.log(f'orchestrator_list type: {type(orchestrator_list)}')
+                logging.log(f'orchestrator_list: {orchestrator_list}')
+                orchestrator_list_items_found = 0
+                orchestrator_list_items_processed = 0
+                if (isinstance(orchestrator_list, list)):
+                    orchestrator_list_items_found += len(orchestrator_list)
+                    total_orchestrator_list_items_found += len(orchestrator_list)
                     for sub_orchestrator_obj in orchestrator_list:
-                        sub_orchestrator_list = sub_orchestrator_obj['sub_orchestrator']
-                        print(f'sub_orchestrator_list type: {type(sub_orchestrator_list)}')
-                        print(f'sub_orchestrator_list: {sub_orchestrator_list}')
-                        sub_orchestrator_activities_list = []
-                        if (sub_orchestrator_list):
-                            for activity_obj in sub_orchestrator_list:
-                                activity_list = activity_obj['activity']
-                                activity_handler_name = activity_obj['activity_handler_name']
-                                print(f'activity_list type: {type(activity_list)}')
-                                print(f'activity_list: {activity_list}')
-                                print(f'activity_handler_name type: {activity_handler_name}')
-                                sub_orchestrator_activities_list.append(context.call_activity(activity_handler_name, activity_list))
-                            if (len(activity_list) > 0):
-                                print(f'sub_orchestrator_activities_list: {sub_orchestrator_activities_list}')
-                                results = yield context.task_all(sub_orchestrator_activities_list)
-                                results_list.append(results)
-                                sub_orchestrator_activities_submitted += 1
-                            else:
-                                results = f'No activities provided for sub_orchestrator_list: {sub_orchestrator_list}'
+                        orchestrator_list_items_processed += 1
+                        total_orchestrator_list_items_processed += 1
+                        sub_orchestrator_list = sub_orchestrator_obj.get('sub_orchestrator',None)
+                        logging.log(f'sub_orchestrator_list type: {type(sub_orchestrator_list)}')
+                        logging.log(f'sub_orchestrator_list: {sub_orchestrator_list}')
+                        sub_orchestrator_list_items_found = 0
+                        sub_orchestrator_list_items_processed = 0
+                        if (isinstance(sub_orchestrator_list, list)):
+                            sub_orchestrator_list_items_found += len(sub_orchestrator_list)
+                            total_sub_orchestrator_list_items_found += len(sub_orchestrator_list)
+                            for sub_orchestrator_obj in sub_orchestrator_list:
+                                sub_orchestrator_list_items_processed += 1
+                                total_sub_orchestrator_list_items_processed += 1
+                                activity_pipeline_name = sub_orchestrator_obj.get('activity_pipeline_name',None)
+                                activity_pipeline_workload_purpose = sub_orchestrator_obj.get('activity_pipeline_workload_purpose',None)
+                                activity_task_list = sub_orchestrator_obj.get('activity_task_list',None)
+                                activity_task_list_items_found = 0
+                                activity_task_list_items_processed = 0
+                                activity_functions_invoked = 0
+                                if (isinstance(activity_task_list, list)):
+                                    activity_task_list_items_found += len(activity_task_list)
+                                    total_activity_task_list_items_found += len(activity_task_list)
+                                    for activity_task_list_obj in activity_task_list:
+                                        activity_task_list_items_processed += 1
+                                        total_activity_task_list_items_processed += 1
+                                        task_function_name = activity_task_list_obj.get('task_function_name',None)
+                                        logging.log(f'Adding task {activity_task_list_items_processed} of {activity_task_list_items_found} to activity processing list: function_name: {task_function_name} task: {activity_task_list_obj}')
+                                        activity_task_list.append(context.call_sub_orchestrator(task_function_name, activity_pipeline_name, activity_pipeline_workload_purpose, activity_task_list))
+                                    if (len(activity_task_list) > 0):
+                                        logging.log(f'Processing {len(activity_task_list)} tasks asynchronously...')
+                                        results = yield context.task_all(activity_task_list)
+                                        results_list.append(results)
+                                        activity_functions_invoked += 1
+                                        total_activity_functions_invoked += 1
+                                    else:
+                                        results = f'No tasks found for activity_task_list: {activity_task_list}'
+                                        yield results 
+                                else:
+                                    results = f'No activity_task_list provided for activity_task_list_obj: {activity_task_list_obj}'
+                                    yield results 
+                            if (sub_orchestrator_list_items_found == 0):
+                                results = f'No sub_orchestrator_obj found in sub_orchestrator_list: {sub_orchestrator_list}'
+                                yield results    
+                            elif (sub_orchestrator_list_items_processed == 0):
+                                results = f'No sub_orchestrator_obj processed in sub_orchestrator_list: {sub_orchestrator_list}'
                                 yield results 
+                            else:
+                                logging.log(f'activity_functions_invoked: {activity_functions_invoked} for activity_pipeline_name: {activity_pipeline_name} with purpose: {activity_pipeline_workload_purpose} Results: {results_list}')     
+                                yield results  
                         else:
                             results = f'No sub_activities provided for sub_orchestrator_list: {sub_orchestrator_list}'
                             yield results 
+                    if (orchestrator_list_items_processed == 0):
+                        results = f'No sub_orchestrator_obj found orchestrator_list: {orchestrator_list}'
+                        yield results 
                 else:
-                    results = f'No sub_activities provided for orchestrator_list: {orchestrator_list}'
+                    results = f'No orchestrator_list provided for orchestrator_obj: {orchestrator_obj}'
                     yield results 
+            if (payload_list_items_found == 0):
+                results = f'No orchestrator_obj found in sub_orchestrator_list: {orchestrator_json}'
+                yield results 
+            elif (payload_list_items_processed == 0):
+                results = f'No orchestrator_obj processed in orchestrator_json: {orchestrator_json}'
+                yield results
         else:
-            results = f'No orchestrator_json provided for orchestrator_obj: {orchestrator_obj}'
-            yield results
-    print(f'sub_orchestrator_activities_submitted: {sub_orchestrator_activities_submitted} Results: {results_list}')     
-    return results
+            results = f'No orchestrator_json list found: {orchestrator_json}'
+            yield results   
+    else:
+        results = f'No orchestrator_input found: {orchestrator_input}'
+        yield results     
+   
+    logging.log(f'Total total_payload_list_items_found: {total_payload_list_items_found}')
+    logging.log(f'Total total_payload_list_items_processed: {total_payload_list_items_processed}')
+    logging.log(f'Total total_orchestrator_list_items_found: {total_orchestrator_list_items_found}')
+    logging.log(f'Total total_orchestrator_list_items_processed: {total_orchestrator_list_items_processed}')
+    logging.log(f'Total total_sub_orchestrator_list_items_found: {total_sub_orchestrator_list_items_found}')
+    logging.log(f'Total total_sub_orchestrator_list_items_processed: {total_sub_orchestrator_list_items_processed}')
+    logging.log(f'Total total_activity_task_list_items_found: {total_activity_task_list_items_found}')
+    logging.log(f'Total total_activity_task_list_items_processed: {total_activity_task_list_items_processed}')
+    logging.log(f'Total activity_functions_invoked: {total_activity_functions_invoked} Results: {results_list}')  
+    yield results   
+
 main = df.Orchestrator.create(orchestrator_function)

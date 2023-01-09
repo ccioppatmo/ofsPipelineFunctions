@@ -1,6 +1,6 @@
 # This function is a 'handler' to execute tasks initiated by a calling orchestrator function.  
 # It is not intended to be invoked directly.
-
+import os
 import logging
 import psycopg2
 import pandas as pd
@@ -56,27 +56,30 @@ run_function_once('dev.process_agg_sector', 1, engine)
 """
 seq = log_df = engine = None
 
-def main(name: str) -> str:
+def main(name: str, activity_task_list: str) -> str:
     global seq, log_df, engine 
     results = []
-    connection = name['resource']
-    username = connection['username']
-    password = connection['password']
-    host = connection['host']
-    port = connection['port']
-    database = connection['database']
+    username = os.getenv('DBUSER_PostgreSQL')
+    password = os.getenv('DBPASS_PostgreSQL')
+    host = os.getenv('DBHOST_PostgreSQL')
+    port = os.getenv('DBPORT_PostgreSQL')
+    database = os.getenv('DBNAME_PostgreSQL')
     engine = ("postgresql://" + username + ":{0}@" + host + ":" + port + "/" + database).format(quote_plus(password))
-    tasks = name['task_list']
-    for task in tasks:
-        seq = 0
-        ct = datetime.datetime.now()
-        log_init_data = [[seq, 'default', ct]]
-        log_df = pd.DataFrame(log_init_data, columns=['Sequence', 'Function', 'Timestamp'])
-        if (task['function_type'] == "run_function_once"):
-            run_function_once(task['function_name'], 1, engine)
-        elif (task['function_type'] == "run_function_iterations"):
-            run_function_iterations(task['function_name'], int(task['parameters']['iterations']), engine)
-        results.append(log_df.to_json())
+    
+    task_list = json.loads(activity_task_list)
+    if (isinstance(task_list, list)):
+        for task in task_list:
+            seq = 0
+            ct = datetime.datetime.now()
+            log_init_data = [[seq, 'default', ct]]
+            log_df = pd.DataFrame(log_init_data, columns=['Sequence', 'Function', 'Timestamp'])
+            if (task['task_type'] == "run_function_once"):
+                run_function_once(task['task_function_name'], 1, engine)
+            elif (task['task_type'] == "run_function_iterations"):
+                run_function_iterations(task['task_function_name'], int(task['parameters']['iterations']), engine)
+            results.append(log_df.to_json())
+    else:
+        logging.log(f'activity_task_list parameter must be a list: {activity_task_list}')
     return results
 
 def log_time(this_seq, this_func):
@@ -92,25 +95,25 @@ def check_exit(func, cursor):
         cursor.execute(sql, sql_data)
         exit_ind = cursor.fetchone()[0]
     except Exception as e:
-        print(e)
+        logging.log(e)
         cursor.close()
         sys.exit("Cannot retrieve graceful exit")
     return exit_ind
 
 def run_function_iterations(in_func, iterations, eng):
     global seq, log_df
-    print('Begin ' + in_func)
+    logging.log('Begin ' + in_func)
     eng = create_engine(engine, isolation_level="AUTOCOMMIT")
     connection = eng.raw_connection()
     cursor = connection.cursor()
-    print('Connection opened.')
+    logging.log('Connection opened.')
     try:
         for x in range(iterations):
             if check_exit('default', cursor) == 'Y':
-                print('Gracefully exiting...')
+                logging.log('Gracefully exiting...')
                 break
             x = x + 1
-            print(x)
+            logging.log(x)
             run_data = (in_func, x)
             run_query = "CALL dev.run_function(%s, %s);"
             seq = seq + 1
@@ -118,28 +121,28 @@ def run_function_iterations(in_func, iterations, eng):
             cursor.execute(run_query, run_data)
             connection.commit()
             log_time(seq, in_func+':'+str(iterations))
-            print('Commit successful.')
+            logging.log('Commit successful.')
     except Exception as e:
-        print(e)
+        logging.log(e)
         connection.rollback()
-        print('Rollback successful.')
+        logging.log('Rollback successful.')
     cursor.close()
-    print('Connection closed.')
-    print('End '+ in_func)
+    logging.log('Connection closed.')
+    logging.log('End '+ in_func)
     return
 
 def run_function_once(in_func, iterations, eng):
     global seq, log_df
-    print('Begin ' + in_func)
+    logging.log('Begin ' + in_func)
     eng = create_engine(engine, isolation_level="AUTOCOMMIT")
     connection = eng.raw_connection()
     cursor = connection.cursor()
-    print('Connection opened.')
+    logging.log('Connection opened.')
     if check_exit('default', cursor) == 'Y':
-        print('Gracefully exiting...')
+        logging.log('Gracefully exiting...')
         cursor.close()
-        print('Connection closed.')
-        print('End '+ in_func)
+        logging.log('Connection closed.')
+        logging.log('End '+ in_func)
         return
     try:
         run_data = (in_func, iterations)
@@ -149,12 +152,12 @@ def run_function_once(in_func, iterations, eng):
         cursor.execute(run_query, run_data)
         log_time(seq, in_func+':'+str(iterations))
         connection.commit()
-        print('Commit successful.')
+        logging.log('Commit successful.')
     except Exception as e:
-        print(e)
+        logging.log(e)
         connection.rollback()
-        print('Rollback successful.')
+        logging.log('Rollback successful.')
     cursor.close()
-    print('Connection closed.')
-    print('End '+ in_func)
+    logging.log('Connection closed.')
+    logging.log('End '+ in_func)
     return
