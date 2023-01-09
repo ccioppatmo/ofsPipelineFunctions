@@ -7,6 +7,7 @@ import logging
 
 import azure.functions as func
 import azure.durable_functions as df
+from ..shared_code.MyClasses import SerializableClass
 import json
 
 async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
