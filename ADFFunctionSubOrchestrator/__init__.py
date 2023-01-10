@@ -52,20 +52,13 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     total_activity_functions_invoked = 0
     try:
         sub_orchestrator_input = context._input
-        sub_orchestrator_input = json.loads(sub_orchestrator_input)
         print(f'type(sub_orchestrator_input): {type(sub_orchestrator_input)}')
         print(f'sub_orchestrator_input: {sub_orchestrator_input}')
+        sub_orchestrator_input = json.loads(sub_orchestrator_input)
     except:
         succeeded = False
-        status_messages.append(f'input data missing or invalid - aborting')
+        print(f'Error trying to load sub_orchestrator_input to json: {sub_orchestrator_input}')
     if ((succeeded) and (sub_orchestrator_input)):
-        """
-        log_message("DEBUG", f'sub_orchestrator_input: {json.loads(sub_orchestrator_input)}')
-        sub_orchestrator_payload = sub_orchestrator_input.get_payload()
-        print(f'type(sub_orchestrator_payload): {type(sub_orchestrator_payload)}')
-        print(f'sub_orchestrator_payload: {sub_orchestrator_payload}')
-        log_message("DEBUG", f'sub_orchestrator_payload: {json.loads(sub_orchestrator_payload)}')
-        """
         sub_orchestrator_json = json.loads(sub_orchestrator_input)
         print(f'type(sub_orchestrator_json): {type(sub_orchestrator_json)}')
         print(f'sub_orchestrator_json: {sub_orchestrator_json}')
