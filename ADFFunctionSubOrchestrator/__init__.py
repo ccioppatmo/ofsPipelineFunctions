@@ -28,6 +28,9 @@ def log_message(sev, msg):
     
 def orchestrator_function(context: df.DurableOrchestrationContext):
     #sub_orchestrator_input: SerializableClass = context.get_input()
+    succeeded = True
+    status_code = 200
+    status_messages = []
     activity_pipeline_name = ""
     activity_pipeline_workload_purpose = ""
     results = {}
@@ -47,11 +50,15 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     total_activity_task_list_items_found = 0
     total_activity_task_list_items_processed = 0
     total_activity_functions_invoked = 0
-    sub_orchestrator_input = context._input
-    sub_orchestrator_input = json.loads(sub_orchestrator_input)
-    print(f'type(sub_orchestrator_input): {type(sub_orchestrator_input)}')
-    print(f'sub_orchestrator_input: {sub_orchestrator_input}')
-    if (sub_orchestrator_input):
+    try:
+        sub_orchestrator_input = context._input
+        sub_orchestrator_input = json.loads(sub_orchestrator_input)
+        print(f'type(sub_orchestrator_input): {type(sub_orchestrator_input)}')
+        print(f'sub_orchestrator_input: {sub_orchestrator_input}')
+    except:
+        succeeded = False
+        status_messages.append(f'input data missing or invalid - aborting')
+    if ((succeeded) and (sub_orchestrator_input)):
         """
         log_message("DEBUG", f'sub_orchestrator_input: {json.loads(sub_orchestrator_input)}')
         sub_orchestrator_payload = sub_orchestrator_input.get_payload()
