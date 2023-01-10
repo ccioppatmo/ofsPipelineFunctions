@@ -56,6 +56,21 @@ run_function_once('dev.process_agg_sector', 1, engine)
 """
 seq = log_df = engine = None
 
+def log_message(sev, msg):
+    if (sev == "INFO"):
+        log_message("DEBUG", msg)
+    elif (sev == "WARNING"):
+        logging.warning(msg)
+    elif (sev == "ERROR"):
+        logging.error(msg) 
+    elif (sev == "CRITICAL"):
+        logging.critical(msg) 
+    elif (sev == "LOG"):
+        logging.log(msg)            
+    elif (sev == "EXCEPTION"):
+        logging.exception(msg) 
+    return
+
 def main(name: str) -> str:
     global seq, log_df, engine 
     results = []
@@ -79,7 +94,7 @@ def main(name: str) -> str:
                 run_function_iterations(task['task_function_name'], int(task['parameters']['iterations']), engine)
             results.append(log_df.to_json())
     else:
-        logging.log(f'activity_task_list parameter must be a list: {name}')
+        log_message("DEBUG", f'activity_task_list parameter must be a list: {name}')
     
     return json.dumps(results) 
 
@@ -96,25 +111,25 @@ def check_exit(func, cursor):
         cursor.execute(sql, sql_data)
         exit_ind = cursor.fetchone()[0]
     except Exception as e:
-        logging.log(e)
+        log_message("DEBUG", e)
         cursor.close()
         sys.exit("Cannot retrieve graceful exit")
     return exit_ind
 
 def run_function_iterations(in_func, iterations, eng):
     global seq, log_df
-    logging.log('Begin ' + in_func)
+    log_message("DEBUG", 'Begin ' + in_func)
     eng = create_engine(engine, isolation_level="AUTOCOMMIT")
     connection = eng.raw_connection()
     cursor = connection.cursor()
-    logging.log('Connection opened.')
+    log_message("DEBUG", 'Connection opened.')
     try:
         for x in range(iterations):
             if check_exit('default', cursor) == 'Y':
-                logging.log('Gracefully exiting...')
+                log_message("DEBUG", 'Gracefully exiting...')
                 break
             x = x + 1
-            logging.log(x)
+            log_message("DEBUG", x)
             run_data = (in_func, x)
             run_query = "CALL dev.run_function(%s, %s);"
             seq = seq + 1
@@ -122,28 +137,28 @@ def run_function_iterations(in_func, iterations, eng):
             cursor.execute(run_query, run_data)
             connection.commit()
             log_time(seq, in_func+':'+str(iterations))
-            logging.log('Commit successful.')
+            log_message("DEBUG", 'Commit successful.')
     except Exception as e:
-        logging.log(e)
+        log_message("DEBUG", e)
         connection.rollback()
-        logging.log('Rollback successful.')
+        log_message("DEBUG", 'Rollback successful.')
     cursor.close()
-    logging.log('Connection closed.')
-    logging.log('End '+ in_func)
+    log_message("DEBUG", 'Connection closed.')
+    log_message("DEBUG", 'End '+ in_func)
     return
 
 def run_function_once(in_func, iterations, eng):
     global seq, log_df
-    logging.log('Begin ' + in_func)
+    log_message("DEBUG", 'Begin ' + in_func)
     eng = create_engine(engine, isolation_level="AUTOCOMMIT")
     connection = eng.raw_connection()
     cursor = connection.cursor()
-    logging.log('Connection opened.')
+    log_message("DEBUG", 'Connection opened.')
     if check_exit('default', cursor) == 'Y':
-        logging.log('Gracefully exiting...')
+        log_message("DEBUG", 'Gracefully exiting...')
         cursor.close()
-        logging.log('Connection closed.')
-        logging.log('End '+ in_func)
+        log_message("DEBUG", 'Connection closed.')
+        log_message("DEBUG", 'End '+ in_func)
         return
     try:
         run_data = (in_func, iterations)
@@ -153,12 +168,12 @@ def run_function_once(in_func, iterations, eng):
         cursor.execute(run_query, run_data)
         log_time(seq, in_func+':'+str(iterations))
         connection.commit()
-        logging.log('Commit successful.')
+        log_message("DEBUG", 'Commit successful.')
     except Exception as e:
-        logging.log(e)
+        log_message("DEBUG", e)
         connection.rollback()
-        logging.log('Rollback successful.')
+        log_message("DEBUG", 'Rollback successful.')
     cursor.close()
-    logging.log('Connection closed.')
-    logging.log('End '+ in_func)
+    log_message("DEBUG", 'Connection closed.')
+    log_message("DEBUG", 'End '+ in_func)
     return
