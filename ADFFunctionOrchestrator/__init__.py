@@ -33,13 +33,15 @@ total_sub_orchestrator_list_items_processed = 0
 total_activity_task_list_items_found = 0
 total_activity_functions_invoked = 0
 def orchestrator_function(context: df.DurableOrchestrationContext):
-    orchestrator_input: SerializableClass = context.get_input()
+    #orchestrator_input: SerializableClass = context.get_input()
+    orchestrator_input = context._input
+    orchestrator_input = json.loads(orchestrator_input)
     if (orchestrator_input):
         logging.log(f'orchestrator_input type: {type(orchestrator_input)}')
-        logging.log(f'orchestrator_input: {orchestrator_input}')
+        logging.log(f'orchestrator_input: {json.loads(orchestrator_input)}')
         orchestrator_payload = orchestrator_input.get_payload()
         logging.log(f'orchestrator_payload type: {type(orchestrator_payload)}')
-        logging.log(f'orchestrator_payload: {orchestrator_payload}')
+        logging.log(f'orchestrator_payload: {json.loads(orchestrator_payload)}')
         orchestrator_json = json.loads(orchestrator_payload)
         logging.log(f'orchestrator_json type: {type(orchestrator_json)}')
         logging.log(f'orchestrator_json: {orchestrator_json}')
@@ -53,7 +55,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
                 total_payload_list_items_processed += 1
                 orchestrator_list = orchestrator_obj.get('orchestrator',None)
                 logging.log(f'orchestrator_list type: {type(orchestrator_list)}')
-                logging.log(f'orchestrator_list: {orchestrator_list}')
+                logging.log(f'orchestrator_list: {json.loads(orchestrator_list)}')
                 orchestrator_list_items_found = 0
                 orchestrator_list_items_processed = 0
                 if (isinstance(orchestrator_list, list)):
@@ -64,7 +66,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
                         total_orchestrator_list_items_processed += 1
                         sub_orchestrator_list = sub_orchestrator_obj.get('sub_orchestrator',None)
                         logging.log(f'sub_orchestrator_list type: {type(sub_orchestrator_list)}')
-                        logging.log(f'sub_orchestrator_list: {sub_orchestrator_list}')
+                        logging.log(f'sub_orchestrator_list: {json.loads(sub_orchestrator_list)}')
                         sub_orchestrator_list_items_found = 0
                         sub_orchestrator_list_items_processed = 0
                         if (isinstance(sub_orchestrator_list, list)):
@@ -87,37 +89,38 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
                                     activity_task_list_to_process.append(context.call_sub_orchestrator("ADFFunctionSubOrchestrator", activity_payload))
                                 else:
                                     results = f'No activity_task_list found for activity_task_list_obj: {activity_task_list_obj}'
-                                    yield results     
+                                    yield results    
                             if (len(activity_task_list_to_process) > 0):
                                 logging.log(f'Processing {len(activity_task_list_to_process)} tasks asynchronously...')
                                 results = yield context.task_all(activity_task_list_to_process)
+                                results = json.dumps(results)
                                 results_list.append(results)
                                 activity_functions_invoked += 1
                                 total_activity_functions_invoked += 1
                             else:
                                 results = f'No tasks found for activity_task_list: {activity_task_list}'
-                                yield results 
+                                yield results
                         else:
                             results = f'No activity_task_list provided for activity_task_list_obj: {activity_task_list_obj}'
                             yield results 
                     if (orchestrator_list_items_processed == 0):
                         results = f'No sub_orchestrator_obj found orchestrator_list: {orchestrator_list}'
-                        yield results 
+                        yield results
                 else:
                     results = f'No orchestrator_list provided for orchestrator_obj: {orchestrator_obj}'
-                    yield results 
+                    yield results
             if (payload_list_items_found == 0):
                 results = f'No orchestrator_obj found in sub_orchestrator_list: {orchestrator_json}'
-                yield results 
+                yield results  
             elif (payload_list_items_processed == 0):
                 results = f'No orchestrator_obj processed in orchestrator_json: {orchestrator_json}'
                 yield results
         else:
             results = f'No orchestrator_json list found: {orchestrator_json}'
-            yield results   
+            yield results  
     else:
         results = f'No orchestrator_input found: {orchestrator_input}'
-        yield results     
+        yield results   
    
     logging.log(f'Total total_payload_list_items_found: {total_payload_list_items_found}')
     logging.log(f'Total total_payload_list_items_processed: {total_payload_list_items_processed}')
@@ -127,6 +130,6 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     logging.log(f'Total total_sub_orchestrator_list_items_processed: {total_sub_orchestrator_list_items_processed}')
     logging.log(f'Total total_activity_task_list_items_found: {total_activity_task_list_items_found}')
     logging.log(f'Total activity_functions_invoked: {total_activity_functions_invoked} Results: {results_list}')  
-    yield results   
+    return 
 
 main = df.Orchestrator.create(orchestrator_function)

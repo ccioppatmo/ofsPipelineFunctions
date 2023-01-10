@@ -80,7 +80,8 @@ def main(name: str) -> str:
             results.append(log_df.to_json())
     else:
         logging.log(f'activity_task_list parameter must be a list: {name}')
-    return results
+    
+    return json.dumps(results) 
 
 def log_time(this_seq, this_func):
     global log_df
