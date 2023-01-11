@@ -26,7 +26,6 @@ def log_message(sev, msg):
     return
 
 def orchestrator_function(context: df.DurableOrchestrationContext):
-    #orchestrator_input: SerializableClass = context.get_input()
 
     succeeded = True
     activity_pipeline_name = ""
@@ -54,7 +53,8 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     total_activity_functions_invoked = 0
 
     try:
-        orchestrator_input = context._input
+        orchestrator_input: SerializableClass = context.get_input()
+        #orchestrator_input = context._input
         print(f'type(orchestrator_input): {type(orchestrator_input)}')
         print(f'orchestrator_input: {orchestrator_input}')
         orchestrator_input = json.loads(orchestrator_input)
