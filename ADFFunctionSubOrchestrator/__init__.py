@@ -27,7 +27,7 @@ def log_message(sev, msg):
     return
     
 def orchestrator_function(context: df.DurableOrchestrationContext):
-    #sub_orchestrator_input: SerializableClass = context.get_input()
+
     succeeded = True
     status_code = 200
     status_messages = []
@@ -51,7 +51,8 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     total_activity_task_list_items_processed = 0
     total_activity_functions_invoked = 0
     try:
-        sub_orchestrator_input = context._input
+        sub_orchestrator_input: SerializableClass = context.get_input()
+        #sub_orchestrator_input = context._input
         print(f'type(sub_orchestrator_input): {type(sub_orchestrator_input)}')
         print(f'sub_orchestrator_input: {sub_orchestrator_input}')
         sub_orchestrator_input = json.loads(sub_orchestrator_input)
